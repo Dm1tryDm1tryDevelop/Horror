@@ -2,18 +2,27 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Побег от Ырки</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Побег от Ырки - Обновление</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; font-family: 'Courier New', Courier, monospace; user-select: none; -webkit-user-select: none; }
         canvas { display: block; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        #joystick-zone { position: absolute; bottom: 20px; left: 20px; width: 150px; height: 150px; pointer-events: auto; }
-        #camera-zone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; pointer-events: auto; }
-        #message { position: absolute; top: 20px; width: 100%; text-align: center; color: #fff; font-size: 24px; text-shadow: 2px 2px 5px #000; pointer-events: none; }
-        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: red; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; z-index: 10; }
-        button { padding: 15px 30px; font-size: 20px; background: #333; color: white; border: 2px solid red; cursor: pointer; border-radius: 10px; margin-top: 20px; }
-        #screamer { position: absolute; top:0; left:0; width: 100%; height: 100%; background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Skull_and_crossbones.svg/500px-Skull_and_crossbones.svg.png') center/contain no-repeat red; z-index: 100; display: none; }
+        #joystick-zone { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; pointer-events: auto; }
+        #camera-zone { position: absolute; top: 0; right: 0; width: 60%; height: 100%; pointer-events: auto; }
+        #message { position: absolute; top: 30px; width: 100%; text-align: center; color: #aaa; font-size: 22px; text-shadow: 0 0 10px #fff; pointer-events: none; font-weight: bold; }
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); color: red; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; z-index: 10; text-align: center; }
+        h1 { font-size: 40px; margin-bottom: 10px; text-shadow: 2px 2px 10px #f00; }
+        p { color: #fff; max-width: 80%; line-height: 1.5; }
+        button { padding: 15px 40px; font-size: 22px; background: #111; color: red; border: 2px solid red; cursor: pointer; border-radius: 5px; margin-top: 30px; text-transform: uppercase; font-weight: bold; box-shadow: 0 0 15px red; transition: 0.3s; }
+        button:active { background: red; color: black; }
+        #screamer { position: absolute; top:0; left:0; width: 100%; height: 100%; background-color: #000; z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        #screamer-face { width: 300px; height: 400px; background: radial-gradient(ellipse at center, #fff 0%, #ccc 40%, #000 100%); border-radius: 50%; position: relative; box-shadow: 0 0 100px red; animation: shake 0.1s infinite; }
+        .eye { position: absolute; width: 60px; height: 40px; background: red; border-radius: 50%; top: 120px; box-shadow: 0 0 30px red; }
+        .eye.left { left: 50px; } .eye.right { right: 50px; }
+        .mouth { position: absolute; width: 150px; height: 100px; background: #000; border-radius: 50%; bottom: 50px; left: 75px; border-bottom: 20px solid red; }
+        @keyframes shake { 0% { transform: translate(5px, 5px) rotate(0deg); } 25% { transform: translate(-5px, -5px) rotate(-5deg); } 50% { transform: translate(5px, -5px) rotate(5deg); } 75% { transform: translate(-5px, 5px) rotate(-5deg); } 100% { transform: translate(5px, 5px) rotate(0deg); } }
+        #blood-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: red; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 5; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
@@ -21,135 +30,234 @@
 <body>
 
     <div id="start-screen">
-        <h1>ТЕМНЫЙ ЛЕС</h1>
-        <p>Найди ворота "ВЫХОД". Остерегайся Ырки.</p>
-        <p>Управление: Левая часть - ходьба, Правая - осмотр.</p>
-        <button id="start-btn">Начать игру</button>
+        <h1>ЫРКА</h1>
+        <p>Лес не отпустит тебя. Найди ворота "ВЫХОД".<br><br><b>Управление:</b><br>Слева - джойстик (ходить)<br>Справа - свайпать по экрану (осматриваться)</p>
+        <button id="start-btn">ВОЙТИ В ЛЕС</button>
     </div>
 
     <div id="ui-layer">
-        <div id="message">Найди ВЫХОД</div>
+        <div id="message">НАЙДИ ВЫХОД</div>
         <div id="joystick-zone"></div>
         <div id="camera-zone"></div>
     </div>
     
-    <div id="screamer"></div>
+    <div id="blood-overlay"></div>
+
+    <div id="screamer">
+        <div id="screamer-face">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="mouth"></div>
+        </div>
+    </div>
 
     <script>
-        let scene, camera, renderer, monster, exitGate;
+        let scene, camera, renderer, monsterGroup, exitGate, particles;
         let moveForward = 0, moveRight = 0;
         let isGameRunning = false;
+        let clock = new THREE.Clock();
+        
+        // Части монстра для анимации
+        let mLeftArm, mRightArm, mLeftLeg, mRightLeg;
 
-        // Настройка аудио контекста для генерации жутких звуков
         let audioCtx;
+        let heartbeatOsc, heartbeatGain;
 
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('start-screen').style.display = 'none';
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            init();
-            animate();
+            initAudio();
+            init3D();
             isGameRunning = true;
-            playAmbiance();
+            animate();
         });
 
-        function init() {
-            // 1. Сцена и туман
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Фоновый гул
+            const droneOsc = audioCtx.createOscillator();
+            const droneGain = audioCtx.createGain();
+            droneOsc.type = 'triangle';
+            droneOsc.frequency.value = 55;
+            droneGain.gain.value = 0.3;
+            droneOsc.connect(droneGain);
+            droneGain.connect(audioCtx.destination);
+            droneOsc.start();
+
+            // Сердцебиение (подготовим, будем менять скорость)
+            heartbeatOsc = audioCtx.createOscillator();
+            heartbeatGain = audioCtx.createGain();
+            heartbeatOsc.type = 'sine';
+            heartbeatOsc.frequency.value = 40;
+            heartbeatGain.gain.value = 0; // Изначально тихо
+            heartbeatOsc.connect(heartbeatGain);
+            heartbeatGain.connect(audioCtx.destination);
+            heartbeatOsc.start();
+        }
+
+        function playHeartbeat(distance) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            let speed = Math.max(0.2, distance / 20); // Чем ближе, тем быстрее пульс
+            let volume = Math.max(0, 1 - (distance / 30));
+            
+            if (now % speed < 0.1) {
+                heartbeatGain.gain.setTargetAtTime(volume * 2, now, 0.02);
+            } else {
+                heartbeatGain.gain.setTargetAtTime(0, now, 0.05);
+            }
+        }
+
+        function init3D() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.08);
+            scene.background = new THREE.Color(0x020202);
+            scene.fog = new THREE.FogExp2(0x020202, 0.06); // Немного рассеяли туман
 
-            // 2. Камера и фонарик
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.y = 1.6; // Рост человека
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.y = 1.7;
+            camera.rotation.order = 'YXZ'; // ВАЖНО: Решает проблему с черным экраном при вращении
 
-            const flashlight = new THREE.SpotLight(0xffffff, 1.5, 30, Math.PI / 6, 0.5, 1);
+            // Освещение
+            const ambient = new THREE.AmbientLight(0x222222);
+            scene.add(ambient);
+
+            const flashlight = new THREE.SpotLight(0xffffff, 1.5, 40, Math.PI / 5, 0.5, 2);
             flashlight.position.set(0, 0, 0);
             flashlight.target.position.set(0, 0, -1);
             camera.add(flashlight);
             camera.add(flashlight.target);
             scene.add(camera);
 
-            const ambientLight = new THREE.AmbientLight(0x111111);
-            scene.add(ambientLight);
-
-            // 3. Рендерер
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x050505);
+            renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1); // Оптимизация для телефонов
             document.body.appendChild(renderer.domElement);
 
-            // 4. Земля
-            const planeGeometry = new THREE.PlaneGeometry(200, 200);
-            const planeMaterial = new THREE.MeshLambertMaterial({ color: 0x1a2e1a });
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.rotation.x = -Math.PI / 2;
-            scene.add(plane);
+            // Земля (с сеткой для видимости движения)
+            const floorGeo = new THREE.PlaneGeometry(200, 200, 20, 20);
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x111611, 
+                roughness: 0.9, 
+                wireframe: false 
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
 
-            // 5. Лес (генерация деревьев)
-            const treeGeo = new THREE.CylinderGeometry(0.2, 0.5, 5, 8);
-            const treeMat = new THREE.MeshLambertMaterial({ color: 0x3d2817 });
-            const leavesGeo = new THREE.ConeGeometry(2, 6, 8);
-            const leavesMat = new THREE.MeshLambertMaterial({ color: 0x0f210f });
+            // Лес
+            const treeMat = new THREE.MeshStandardMaterial({ color: 0x1a110a, roughness: 1 });
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x0a1a0a, roughness: 0.8 });
+            
+            for (let i = 0; i < 150; i++) {
+                const x = (Math.random() - 0.5) * 180;
+                const z = (Math.random() - 0.5) * 180;
+                if (Math.abs(x) < 8 && Math.abs(z) < 8) continue;
 
-            for (let i = 0; i < 200; i++) {
-                const x = (Math.random() - 0.5) * 150;
-                const z = (Math.random() - 0.5) * 150;
-                if (Math.abs(x) < 5 && Math.abs(z) < 5) continue; // Освобождаем центр
-
-                const trunk = new THREE.Mesh(treeGeo, treeMat);
-                trunk.position.set(x, 2.5, z);
+                const height = 4 + Math.random() * 4;
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, height, 5), treeMat);
+                trunk.position.set(x, height/2, z);
                 
-                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-                leaves.position.set(x, 6, z);
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(2 + Math.random(), height, 5), leavesMat);
+                leaves.position.set(x, height + 1, z);
                 
                 scene.add(trunk);
                 scene.add(leaves);
             }
 
-            // 6. Монстр (Ырка - базовый силуэт)
-            const monsterGeo = new THREE.CylinderGeometry(0.3, 0.3, 2.5, 16);
-            const monsterMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Белый, светится в темноте
-            monster = new THREE.Mesh(monsterGeo, monsterMat);
-            monster.position.set(20, 1.25, -20);
-            scene.add(monster);
+            // Пыль в воздухе (Частицы)
+            const partGeo = new THREE.BufferGeometry();
+            const partCount = 500;
+            const posArray = new Float32Array(partCount * 3);
+            for(let i=0; i<partCount*3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 50;
+            }
+            partGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const partMat = new THREE.PointsMaterial({ size: 0.1, color: 0x888888, transparent: true, opacity: 0.5 });
+            particles = new THREE.Points(partGeo, partMat);
+            scene.add(particles);
 
-            // 7. Ворота (Выход)
+            // Создаем монстра (Детализированная сборка)
+            monsterGroup = new THREE.Group();
+            
+            const mBodyMat = new THREE.MeshBasicMaterial({ color: 0xdddddd }); // Светящийся белый
+            
+            // Тело
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.2, 2.5, 8), mBodyMat);
+            body.position.y = 2.5;
+            monsterGroup.add(body);
+
+            // Голова
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), mBodyMat);
+            head.position.y = 4;
+            monsterGroup.add(head);
+
+            // Красные глаза
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), eyeMat);
+            eyeL.position.set(0.15, 4.05, 0.3);
+            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), eyeMat);
+            eyeR.position.set(-0.15, 4.05, 0.3);
+            monsterGroup.add(eyeL);
+            monsterGroup.add(eyeR);
+
+            // Конечности
+            const limbGeo = new THREE.CylinderGeometry(0.1, 0.05, 2, 8);
+            limbGeo.translate(0, -1, 0); // Смещаем центр вращения в плечо/бедро
+
+            mLeftArm = new THREE.Mesh(limbGeo, mBodyMat);
+            mLeftArm.position.set(0.6, 3.5, 0);
+            monsterGroup.add(mLeftArm);
+
+            mRightArm = new THREE.Mesh(limbGeo, mBodyMat);
+            mRightArm.position.set(-0.6, 3.5, 0);
+            monsterGroup.add(mRightArm);
+
+            mLeftLeg = new THREE.Mesh(limbGeo, mBodyMat);
+            mLeftLeg.position.set(0.25, 1.5, 0);
+            monsterGroup.add(mLeftLeg);
+
+            mRightLeg = new THREE.Mesh(limbGeo, mBodyMat);
+            mRightLeg.position.set(-0.25, 1.5, 0);
+            monsterGroup.add(mRightLeg);
+
+            monsterGroup.position.set(15, 0, -25);
+            scene.add(monsterGroup);
+
+            // Ворота выхода
             exitGate = new THREE.Group();
-            const pillarGeo = new THREE.BoxGeometry(0.5, 4, 0.5);
-            const pillarMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
-            const p1 = new THREE.Mesh(pillarGeo, pillarMat); p1.position.set(-2, 2, 0);
-            const p2 = new THREE.Mesh(pillarGeo, pillarMat); p2.position.set(2, 2, 0);
-            const top = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.5, 0.5), pillarMat); top.position.set(0, 4, 0);
+            const gateMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
+            const p1 = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 1), gateMat); p1.position.set(-3, 3, 0);
+            const p2 = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 1), gateMat); p2.position.set(3, 3, 0);
+            const top = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 1), gateMat); top.position.set(0, 6.5, 0);
             exitGate.add(p1); exitGate.add(p2); exitGate.add(top);
             
-            // Добавляем красную подсветку выхода
-            const exitLight = new THREE.PointLight(0xff0000, 2, 10);
-            exitLight.position.set(0, 3, 0);
+            // Свет выхода
+            const exitLight = new THREE.PointLight(0x00ff00, 2, 15);
+            exitLight.position.set(0, 4, 1);
             exitGate.add(exitLight);
             
-            exitGate.position.set(-30, 0, -40);
+            exitGate.position.set(-40, 0, -50);
             exitGate.lookAt(0,0,0);
             scene.add(exitGate);
 
-            // 8. Управление
             setupControls();
         }
 
         function setupControls() {
-            // Джойстик для ходьбы
             const manager = nipplejs.create({
                 zone: document.getElementById('joystick-zone'),
                 mode: 'static',
                 position: { left: '50%', top: '50%' },
-                color: 'white'
+                color: 'white',
+                size: 100
             });
 
             manager.on('move', (e, data) => {
-                moveForward = Math.cos(data.angle.radian) * data.distance * 0.001;
-                moveRight = Math.sin(data.angle.radian) * data.distance * 0.001;
+                moveForward = Math.cos(data.angle.radian) * data.distance * 0.0015;
+                moveRight = Math.sin(data.angle.radian) * data.distance * 0.0015;
             });
             manager.on('end', () => { moveForward = 0; moveRight = 0; });
 
-            // Свайпы для поворота камеры
             const cameraZone = document.getElementById('camera-zone');
             let isDragging = false;
             let previousTouch;
@@ -165,10 +273,9 @@
                 const movementX = touch.pageX - previousTouch.pageX;
                 const movementY = touch.pageY - previousTouch.pageY;
 
-                camera.rotation.y -= movementX * 0.005;
-                camera.rotation.x -= movementY * 0.005;
-                // Ограничение наклона головы
-                camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+                camera.rotation.y -= movementX * 0.006;
+                camera.rotation.x -= movementY * 0.006;
+                camera.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, camera.rotation.x));
                 
                 previousTouch = touch;
             });
@@ -176,35 +283,35 @@
             cameraZone.addEventListener('touchend', () => { isDragging = false; });
         }
 
-        // Жуткий гул (Web Audio API)
-        function playAmbiance() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = 40; // Низкочастотный гул
-            gain.gain.value = 0.5;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-        }
-
-        // Звук скримера
         function triggerScreamer() {
             isGameRunning = false;
-            document.getElementById('screamer').style.display = 'block';
+            document.getElementById('screamer').style.display = 'flex';
+            document.getElementById('ui-layer').style.display = 'none';
             
-            const osc = audioCtx.createOscillator();
+            // Жуткий визг
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(3000, audioCtx.currentTime + 0.1);
+            
+            osc1.type = 'sawtooth';
+            osc2.type = 'square';
+            
+            osc1.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc1.frequency.exponentialRampToValueAtTime(3000, audioCtx.currentTime + 0.2);
+            
+            osc2.frequency.setValueAtTime(900, audioCtx.currentTime);
+            osc2.frequency.exponentialRampToValueAtTime(3100, audioCtx.currentTime + 0.2);
+            
             gain.gain.setValueAtTime(1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
-            osc.connect(gain);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 1.5);
-
+            
+            osc1.start();
+            osc2.start();
+            
             setTimeout(() => { location.reload(); }, 2000);
         }
 
@@ -212,7 +319,13 @@
             if (!isGameRunning) return;
             requestAnimationFrame(animate);
 
-            // Движение игрока относительно направления камеры
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Вращение частиц
+            particles.rotation.y = time * 0.05;
+
+            // Движение игрока
             const direction = new THREE.Vector3();
             camera.getWorldDirection(direction);
             direction.y = 0; direction.normalize();
@@ -220,29 +333,55 @@
             const right = new THREE.Vector3();
             right.crossVectors(direction, camera.up).normalize();
 
-            camera.position.addScaledVector(direction, moveRight * 0.1); // NippleJS углы смещены
-            camera.position.addScaledVector(right, moveForward * 0.1);
+            camera.position.addScaledVector(direction, moveRight * 2 * delta); // Инверсия для джойстика
+            camera.position.addScaledVector(right, moveForward * 2 * delta);
 
-            // Логика монстра (преследование)
-            const distToMonster = camera.position.distanceTo(monster.position);
-            if (distToMonster < 25) {
-                // Монстр смотрит на игрока и идет к нему
-                monster.lookAt(camera.position.x, monster.position.y, camera.position.z);
-                monster.translateZ(0.04); 
-                // Анимация шагов (покачивание)
-                monster.position.y = 1.25 + Math.sin(Date.now() * 0.01) * 0.2;
+            // Ограничение карты
+            camera.position.x = Math.max(-90, Math.min(90, camera.position.x));
+            camera.position.z = Math.max(-90, Math.min(90, camera.position.z));
+
+            // Логика монстра
+            const distToMonster = camera.position.distanceTo(monsterGroup.position);
+            
+            playHeartbeat(distToMonster);
+
+            if (distToMonster < 30) {
+                // Монстр смотрит на игрока
+                const targetPos = new THREE.Vector3(camera.position.x, monsterGroup.position.y, camera.position.z);
+                monsterGroup.lookAt(targetPos);
+                
+                // Скорость монстра увеличивается, если он близко
+                const speed = distToMonster < 15 ? 4.5 : 2.5;
+                monsterGroup.translateZ(speed * delta);
+
+                // Анимация бега/ходьбы гориллы
+                mLeftArm.rotation.x = Math.sin(time * 10) * 0.8;
+                mRightArm.rotation.x = Math.sin(time * 10 + Math.PI) * 0.8;
+                mLeftLeg.rotation.x = Math.sin(time * 10 + Math.PI) * 0.8;
+                mRightLeg.rotation.x = Math.sin(time * 10) * 0.8;
+                
+                // Раскачивание тела
+                monsterGroup.position.y = Math.abs(Math.sin(time * 10)) * 0.3;
+                
+                // Эффект паники (красный экран)
+                if(distToMonster < 10) {
+                    document.getElementById('blood-overlay').style.opacity = 1 - (distToMonster / 10);
+                } else {
+                    document.getElementById('blood-overlay').style.opacity = 0;
+                }
             }
 
-            // Проверка столкновения со скримером
-            if (distToMonster < 1.5) {
+            // Поимка
+            if (distToMonster < 1.8) {
                 triggerScreamer();
             }
 
-            // Проверка победы (Дошел до выхода)
-            if (camera.position.distanceTo(exitGate.position) < 3) {
+            // Победа
+            if (camera.position.distanceTo(exitGate.position) < 4) {
                 isGameRunning = false;
-                alert("ТЫ СБЕЖАЛ!");
-                location.reload();
+                document.getElementById('message').innerText = "ТЫ СБЕЖАЛ!";
+                document.getElementById('message').style.color = "#0f0";
+                setTimeout(() => { location.reload(); }, 3000);
             }
 
             renderer.render(scene, camera);
