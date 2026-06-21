@@ -1,397 +1,69 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Побег от Ырки - Обновление</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; font-family: 'Courier New', Courier, monospace; user-select: none; -webkit-user-select: none; }
-        canvas { display: block; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        #joystick-zone { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; pointer-events: auto; }
-        #camera-zone { position: absolute; top: 0; right: 0; width: 60%; height: 100%; pointer-events: auto; }
-        #message { position: absolute; top: 30px; width: 100%; text-align: center; color: #aaa; font-size: 22px; text-shadow: 0 0 10px #fff; pointer-events: none; font-weight: bold; }
-        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); color: red; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; z-index: 10; text-align: center; }
-        h1 { font-size: 40px; margin-bottom: 10px; text-shadow: 2px 2px 10px #f00; }
-        p { color: #fff; max-width: 80%; line-height: 1.5; }
-        button { padding: 15px 40px; font-size: 22px; background: #111; color: red; border: 2px solid red; cursor: pointer; border-radius: 5px; margin-top: 30px; text-transform: uppercase; font-weight: bold; box-shadow: 0 0 15px red; transition: 0.3s; }
-        button:active { background: red; color: black; }
-        #screamer { position: absolute; top:0; left:0; width: 100%; height: 100%; background-color: #000; z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        #screamer-face { width: 300px; height: 400px; background: radial-gradient(ellipse at center, #fff 0%, #ccc 40%, #000 100%); border-radius: 50%; position: relative; box-shadow: 0 0 100px red; animation: shake 0.1s infinite; }
-        .eye { position: absolute; width: 60px; height: 40px; background: red; border-radius: 50%; top: 120px; box-shadow: 0 0 30px red; }
-        .eye.left { left: 50px; } .eye.right { right: 50px; }
-        .mouth { position: absolute; width: 150px; height: 100px; background: #000; border-radius: 50%; bottom: 50px; left: 75px; border-bottom: 20px solid red; }
-        @keyframes shake { 0% { transform: translate(5px, 5px) rotate(0deg); } 25% { transform: translate(-5px, -5px) rotate(-5deg); } 50% { transform: translate(5px, -5px) rotate(5deg); } 75% { transform: translate(-5px, 5px) rotate(-5deg); } 100% { transform: translate(5px, 5px) rotate(0deg); } }
-        #blood-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: red; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 5; }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Вордли</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <h1>ВОРДЛИ</h1>
+  </header>
 
-    <div id="start-screen">
-        <h1>ЫРКА</h1>
-        <p>Лес не отпустит тебя. Найди ворота "ВЫХОД".<br><br><b>Управление:</b><br>Слева - джойстик (ходить)<br>Справа - свайпать по экрану (осматриваться)</p>
-        <button id="start-btn">ВОЙТИ В ЛЕС</button>
+  <main>
+    <div id="message"></div>
+
+    <div id="board-container">
+      <div id="board"></div>
     </div>
 
-    <div id="ui-layer">
-        <div id="message">НАЙДИ ВЫХОД</div>
-        <div id="joystick-zone"></div>
-        <div id="camera-zone"></div>
+    <button id="next-btn" class="hidden">Следующее слово</button>
+
+    <div id="keyboard">
+      <div class="keyboard-row">
+        <button class="key" data-key="Й">Й</button>
+        <button class="key" data-key="Ц">Ц</button>
+        <button class="key" data-key="У">У</button>
+        <button class="key" data-key="К">К</button>
+        <button class="key" data-key="Е">Е</button>
+        <button class="key" data-key="Н">Н</button>
+        <button class="key" data-key="Г">Г</button>
+        <button class="key" data-key="Ш">Ш</button>
+        <button class="key" data-key="Щ">Щ</button>
+        <button class="key" data-key="З">З</button>
+        <button class="key" data-key="Х">Х</button>
+        <button class="key" data-key="Ъ">Ъ</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="key" data-key="Ф">Ф</button>
+        <button class="key" data-key="Ы">Ы</button>
+        <button class="key" data-key="В">В</button>
+        <button class="key" data-key="А">А</button>
+        <button class="key" data-key="П">П</button>
+        <button class="key" data-key="Р">Р</button>
+        <button class="key" data-key="О">О</button>
+        <button class="key" data-key="Л">Л</button>
+        <button class="key" data-key="Д">Д</button>
+        <button class="key" data-key="Ж">Ж</button>
+        <button class="key" data-key="Э">Э</button>
+      </div>
+      <div class="keyboard-row">
+        <button class="key key-wide" id="enter-key">ВВОД</button>
+        <button class="key" data-key="Я">Я</button>
+        <button class="key" data-key="Ч">Ч</button>
+        <button class="key" data-key="С">С</button>
+        <button class="key" data-key="М">М</button>
+        <button class="key" data-key="И">И</button>
+        <button class="key" data-key="Т">Т</button>
+        <button class="key" data-key="Ь">Ь</button>
+        <button class="key" data-key="Б">Б</button>
+        <button class="key" data-key="Ю">Ю</button>
+        <button class="key key-wide" id="delete-key">⌫</button>
+      </div>
     </div>
-    
-    <div id="blood-overlay"></div>
+  </main>
 
-    <div id="screamer">
-        <div id="screamer-face">
-            <div class="eye left"></div>
-            <div class="eye right"></div>
-            <div class="mouth"></div>
-        </div>
-    </div>
-
-    <script>
-        let scene, camera, renderer, monsterGroup, exitGate, particles;
-        let moveForward = 0, moveRight = 0;
-        let isGameRunning = false;
-        let clock = new THREE.Clock();
-        
-        // Части монстра для анимации
-        let mLeftArm, mRightArm, mLeftLeg, mRightLeg;
-
-        let audioCtx;
-        let heartbeatOsc, heartbeatGain;
-
-        document.getElementById('start-btn').addEventListener('click', () => {
-            document.getElementById('start-screen').style.display = 'none';
-            initAudio();
-            init3D();
-            isGameRunning = true;
-            animate();
-        });
-
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Фоновый гул
-            const droneOsc = audioCtx.createOscillator();
-            const droneGain = audioCtx.createGain();
-            droneOsc.type = 'triangle';
-            droneOsc.frequency.value = 55;
-            droneGain.gain.value = 0.3;
-            droneOsc.connect(droneGain);
-            droneGain.connect(audioCtx.destination);
-            droneOsc.start();
-
-            // Сердцебиение (подготовим, будем менять скорость)
-            heartbeatOsc = audioCtx.createOscillator();
-            heartbeatGain = audioCtx.createGain();
-            heartbeatOsc.type = 'sine';
-            heartbeatOsc.frequency.value = 40;
-            heartbeatGain.gain.value = 0; // Изначально тихо
-            heartbeatOsc.connect(heartbeatGain);
-            heartbeatGain.connect(audioCtx.destination);
-            heartbeatOsc.start();
-        }
-
-        function playHeartbeat(distance) {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-            let speed = Math.max(0.2, distance / 20); // Чем ближе, тем быстрее пульс
-            let volume = Math.max(0, 1 - (distance / 30));
-            
-            if (now % speed < 0.1) {
-                heartbeatGain.gain.setTargetAtTime(volume * 2, now, 0.02);
-            } else {
-                heartbeatGain.gain.setTargetAtTime(0, now, 0.05);
-            }
-        }
-
-        function init3D() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x020202);
-            scene.fog = new THREE.FogExp2(0x020202, 0.06); // Немного рассеяли туман
-
-            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.y = 1.7;
-            camera.rotation.order = 'YXZ'; // ВАЖНО: Решает проблему с черным экраном при вращении
-
-            // Освещение
-            const ambient = new THREE.AmbientLight(0x222222);
-            scene.add(ambient);
-
-            const flashlight = new THREE.SpotLight(0xffffff, 1.5, 40, Math.PI / 5, 0.5, 2);
-            flashlight.position.set(0, 0, 0);
-            flashlight.target.position.set(0, 0, -1);
-            camera.add(flashlight);
-            camera.add(flashlight.target);
-            scene.add(camera);
-
-            renderer = new THREE.WebGLRenderer({ antialias: false });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1); // Оптимизация для телефонов
-            document.body.appendChild(renderer.domElement);
-
-            // Земля (с сеткой для видимости движения)
-            const floorGeo = new THREE.PlaneGeometry(200, 200, 20, 20);
-            const floorMat = new THREE.MeshStandardMaterial({ 
-                color: 0x111611, 
-                roughness: 0.9, 
-                wireframe: false 
-            });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
-
-            // Лес
-            const treeMat = new THREE.MeshStandardMaterial({ color: 0x1a110a, roughness: 1 });
-            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x0a1a0a, roughness: 0.8 });
-            
-            for (let i = 0; i < 150; i++) {
-                const x = (Math.random() - 0.5) * 180;
-                const z = (Math.random() - 0.5) * 180;
-                if (Math.abs(x) < 8 && Math.abs(z) < 8) continue;
-
-                const height = 4 + Math.random() * 4;
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, height, 5), treeMat);
-                trunk.position.set(x, height/2, z);
-                
-                const leaves = new THREE.Mesh(new THREE.ConeGeometry(2 + Math.random(), height, 5), leavesMat);
-                leaves.position.set(x, height + 1, z);
-                
-                scene.add(trunk);
-                scene.add(leaves);
-            }
-
-            // Пыль в воздухе (Частицы)
-            const partGeo = new THREE.BufferGeometry();
-            const partCount = 500;
-            const posArray = new Float32Array(partCount * 3);
-            for(let i=0; i<partCount*3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 50;
-            }
-            partGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const partMat = new THREE.PointsMaterial({ size: 0.1, color: 0x888888, transparent: true, opacity: 0.5 });
-            particles = new THREE.Points(partGeo, partMat);
-            scene.add(particles);
-
-            // Создаем монстра (Детализированная сборка)
-            monsterGroup = new THREE.Group();
-            
-            const mBodyMat = new THREE.MeshBasicMaterial({ color: 0xdddddd }); // Светящийся белый
-            
-            // Тело
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.2, 2.5, 8), mBodyMat);
-            body.position.y = 2.5;
-            monsterGroup.add(body);
-
-            // Голова
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), mBodyMat);
-            head.position.y = 4;
-            monsterGroup.add(head);
-
-            // Красные глаза
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), eyeMat);
-            eyeL.position.set(0.15, 4.05, 0.3);
-            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), eyeMat);
-            eyeR.position.set(-0.15, 4.05, 0.3);
-            monsterGroup.add(eyeL);
-            monsterGroup.add(eyeR);
-
-            // Конечности
-            const limbGeo = new THREE.CylinderGeometry(0.1, 0.05, 2, 8);
-            limbGeo.translate(0, -1, 0); // Смещаем центр вращения в плечо/бедро
-
-            mLeftArm = new THREE.Mesh(limbGeo, mBodyMat);
-            mLeftArm.position.set(0.6, 3.5, 0);
-            monsterGroup.add(mLeftArm);
-
-            mRightArm = new THREE.Mesh(limbGeo, mBodyMat);
-            mRightArm.position.set(-0.6, 3.5, 0);
-            monsterGroup.add(mRightArm);
-
-            mLeftLeg = new THREE.Mesh(limbGeo, mBodyMat);
-            mLeftLeg.position.set(0.25, 1.5, 0);
-            monsterGroup.add(mLeftLeg);
-
-            mRightLeg = new THREE.Mesh(limbGeo, mBodyMat);
-            mRightLeg.position.set(-0.25, 1.5, 0);
-            monsterGroup.add(mRightLeg);
-
-            monsterGroup.position.set(15, 0, -25);
-            scene.add(monsterGroup);
-
-            // Ворота выхода
-            exitGate = new THREE.Group();
-            const gateMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
-            const p1 = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 1), gateMat); p1.position.set(-3, 3, 0);
-            const p2 = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 1), gateMat); p2.position.set(3, 3, 0);
-            const top = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 1), gateMat); top.position.set(0, 6.5, 0);
-            exitGate.add(p1); exitGate.add(p2); exitGate.add(top);
-            
-            // Свет выхода
-            const exitLight = new THREE.PointLight(0x00ff00, 2, 15);
-            exitLight.position.set(0, 4, 1);
-            exitGate.add(exitLight);
-            
-            exitGate.position.set(-40, 0, -50);
-            exitGate.lookAt(0,0,0);
-            scene.add(exitGate);
-
-            setupControls();
-        }
-
-        function setupControls() {
-            const manager = nipplejs.create({
-                zone: document.getElementById('joystick-zone'),
-                mode: 'static',
-                position: { left: '50%', top: '50%' },
-                color: 'white',
-                size: 100
-            });
-
-            manager.on('move', (e, data) => {
-                moveForward = Math.cos(data.angle.radian) * data.distance * 0.0015;
-                moveRight = Math.sin(data.angle.radian) * data.distance * 0.0015;
-            });
-            manager.on('end', () => { moveForward = 0; moveRight = 0; });
-
-            const cameraZone = document.getElementById('camera-zone');
-            let isDragging = false;
-            let previousTouch;
-
-            cameraZone.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                previousTouch = e.touches[0];
-            });
-
-            cameraZone.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                const touch = e.touches[0];
-                const movementX = touch.pageX - previousTouch.pageX;
-                const movementY = touch.pageY - previousTouch.pageY;
-
-                camera.rotation.y -= movementX * 0.006;
-                camera.rotation.x -= movementY * 0.006;
-                camera.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, camera.rotation.x));
-                
-                previousTouch = touch;
-            });
-
-            cameraZone.addEventListener('touchend', () => { isDragging = false; });
-        }
-
-        function triggerScreamer() {
-            isGameRunning = false;
-            document.getElementById('screamer').style.display = 'flex';
-            document.getElementById('ui-layer').style.display = 'none';
-            
-            // Жуткий визг
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc1.type = 'sawtooth';
-            osc2.type = 'square';
-            
-            osc1.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc1.frequency.exponentialRampToValueAtTime(3000, audioCtx.currentTime + 0.2);
-            
-            osc2.frequency.setValueAtTime(900, audioCtx.currentTime);
-            osc2.frequency.exponentialRampToValueAtTime(3100, audioCtx.currentTime + 0.2);
-            
-            gain.gain.setValueAtTime(1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-            
-            osc1.connect(gain);
-            osc2.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc1.start();
-            osc2.start();
-            
-            setTimeout(() => { location.reload(); }, 2000);
-        }
-
-        function animate() {
-            if (!isGameRunning) return;
-            requestAnimationFrame(animate);
-
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
-
-            // Вращение частиц
-            particles.rotation.y = time * 0.05;
-
-            // Движение игрока
-            const direction = new THREE.Vector3();
-            camera.getWorldDirection(direction);
-            direction.y = 0; direction.normalize();
-
-            const right = new THREE.Vector3();
-            right.crossVectors(direction, camera.up).normalize();
-
-            camera.position.addScaledVector(direction, moveRight * 2 * delta); // Инверсия для джойстика
-            camera.position.addScaledVector(right, moveForward * 2 * delta);
-
-            // Ограничение карты
-            camera.position.x = Math.max(-90, Math.min(90, camera.position.x));
-            camera.position.z = Math.max(-90, Math.min(90, camera.position.z));
-
-            // Логика монстра
-            const distToMonster = camera.position.distanceTo(monsterGroup.position);
-            
-            playHeartbeat(distToMonster);
-
-            if (distToMonster < 30) {
-                // Монстр смотрит на игрока
-                const targetPos = new THREE.Vector3(camera.position.x, monsterGroup.position.y, camera.position.z);
-                monsterGroup.lookAt(targetPos);
-                
-                // Скорость монстра увеличивается, если он близко
-                const speed = distToMonster < 15 ? 4.5 : 2.5;
-                monsterGroup.translateZ(speed * delta);
-
-                // Анимация бега/ходьбы гориллы
-                mLeftArm.rotation.x = Math.sin(time * 10) * 0.8;
-                mRightArm.rotation.x = Math.sin(time * 10 + Math.PI) * 0.8;
-                mLeftLeg.rotation.x = Math.sin(time * 10 + Math.PI) * 0.8;
-                mRightLeg.rotation.x = Math.sin(time * 10) * 0.8;
-                
-                // Раскачивание тела
-                monsterGroup.position.y = Math.abs(Math.sin(time * 10)) * 0.3;
-                
-                // Эффект паники (красный экран)
-                if(distToMonster < 10) {
-                    document.getElementById('blood-overlay').style.opacity = 1 - (distToMonster / 10);
-                } else {
-                    document.getElementById('blood-overlay').style.opacity = 0;
-                }
-            }
-
-            // Поимка
-            if (distToMonster < 1.8) {
-                triggerScreamer();
-            }
-
-            // Победа
-            if (camera.position.distanceTo(exitGate.position) < 4) {
-                isGameRunning = false;
-                document.getElementById('message').innerText = "ТЫ СБЕЖАЛ!";
-                document.getElementById('message').style.color = "#0f0";
-                setTimeout(() => { location.reload(); }, 3000);
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
